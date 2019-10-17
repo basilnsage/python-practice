@@ -105,8 +105,8 @@ class LIFOHashMap(Hashmap):
         self.values_view = self.items_view.get_values_view()
 
     def __iter__(self):
-        # do we need to implement some kind of view object for this?
-        pass
+        for key in self.keys_view:
+            yield key
 
     def _grow_hashmap(self):
         if self.scale_factor == 1:

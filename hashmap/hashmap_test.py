@@ -196,6 +196,15 @@ class HashMapTests(unittest.TestCase):
             popped.append(self.lifoMap.popitem())
         self.assertEqual(popped, [('c', 3), ('b', 2), ('a', 1)])
 
+    def test_lifo_iter(self):
+        self.lifoMap.put('a', 1)
+        self.lifoMap.put('b', 2)
+        self.lifoMap.put('c', 3)
+        keys = []
+        for k in self.lifoMap:
+            keys.append(k)
+        self.assertEqual(keys, ['a', 'b', 'c'])
+
 
 if __name__ == '__main__':
     unittest.main()
