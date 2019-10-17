@@ -1,8 +1,4 @@
-# hashmaps without LIFO order
-# imports go here
-from hashmap_base_structures import *
-
-
+# where parent view object and its chillens will go
 class Hashmap:
 
     def __init__(self, scale=2, n_buckets=8):
@@ -86,7 +82,6 @@ class Hashmap:
             return default[0]
         else:
             value = node.value
-            self.length -= 1
         return value
 
     def setdefault(self, key, default=None):
@@ -96,87 +91,52 @@ class Hashmap:
         return default
 
 
-class LIFOHashMap(Hashmap):
+class KVNode:
 
-    def __init__(self, scale=2, n_buckets=8):
-        super().__init__(scale, n_buckets)
-        self.items_view = ItemsView()
-        self.keys_view = self.items_view.get_keys_view()
-        self.values_view = self.items_view.get_values_view()
+    def __init__(self, key, value):
+        self.hash = hash(key)
+        self.key = key
+        self.value = value
+
+
+class Bucket:
+
+    def __init__(self):
+        self.kv_nodes = []
+
+    def __contains__(self, item: KVNode):
+        k_hash = item.hash
+        if self.find_node_by_hash(k_hash) is None:
+            return False
+        return True
 
     def __iter__(self):
-        for key in self.keys_view:
-            yield key
+        for kv_node in self.kv_nodes:
+            yield kv_node
 
-    def _grow_hashmap(self):
-        if self.scale_factor == 1:
-            raise IndexError("Hashmap requires resizing and scale factor is 1, cannot resize")
-        self.n_buckets *= self.scale_factor
-        new_buckets = []
-        for i in range(0, self.n_buckets):
-            new_buckets.append(Bucket())
-        self.buckets = new_buckets
-        for k, v in self.items_view:
-            kv_node = KVNode(k, v)
-            b_index = kv_node.hash % self.n_buckets
-            bucket = self.buckets[b_index]
-            bucket.append_kv_node(kv_node)
+    def __len__(self):
+        return len(self.kv_nodes)
 
+    def find_node_by_hash(self, k_hash):
+        for kv_node in self.kv_nodes:
+            if kv_node.hash == k_hash:
+                return kv_node
 
-    def _get_kv_node(self, key):
-        key_hash = hash(key)
-        modulo = key_hash % self.n_buckets
-        bucket = self.buckets[modulo]
-        return bucket.find_node_by_hash(key_hash)
+    def del_node_by_hash(self, k_hash):
+        i = self._index_node_by_hash(k_hash)
+        if i is None:
+            return None
+        return self.kv_nodes.pop(i)
 
-    def keys(self):
-        return self.keys_view
+    def _index_node_by_hash(self, k_hash):
+        for i in range(0, len(self)):
+            if self.kv_nodes[i].hash == k_hash:
+                return i
+            i += 1
 
-    def values(self):
-        return self.values_view
+    def append_kv_node(self, kv_node):
+        self.kv_nodes.append(kv_node)
 
-    def items(self):
-        return self.items_view
-
-    def put(self, key, value):
-        kv_node = KVNode(key, value)
-        b_index = kv_node.hash % self.n_buckets
-        bucket = self.buckets[b_index]
-        contains = kv_node in bucket
-        if not contains:
-            if len(self) == self.n_buckets:
-                self._grow_hashmap()
-                b_index = kv_node.hash % self.n_buckets
-                bucket = self.buckets[b_index]
-            bucket.append_kv_node(kv_node)
-            self.items_view.add_node(kv_node)
-            self.length += 1
-        else:
-            bucket.update_kv_node(kv_node)
-
-    def pop(self, *args):
-        if len(args) < 1:
-            raise TypeError(f'pop expected at least 1 argument, got {len(args)}')
-        elif len(args) > 2:
-            raise TypeError(f'pop expected 2 arguments, got {len(args)}')
-        key = args[0]
-        default = args[1:]
-        if key not in self and len(default) == 0:
-            raise KeyError('Key not found and default not specified')
-        k_hash = hash(key)
-        b_index = k_hash % self.n_buckets
-        bucket = self.buckets[b_index]
-        node = bucket.del_node_by_hash(k_hash)
-        if node is None and len(default) == 0:
-            raise KeyError('key not found in hashmap')
-        elif node is None:
-            return default[0]
-        else:
-            value = node.value
-            self.items_view.remove_node(node)
-            self.length -= 1
-        return value
-
-    def popitem(self):
-        self.length -= 1
-        return self.items_view.pop()
+    def update_kv_node(self, kv_node):
+        kv_node_index = self._index_node_by_hash(kv_node.hash)
+        self.kv_nodes[kv_node_index] = kv_node
