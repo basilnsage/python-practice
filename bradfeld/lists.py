@@ -131,6 +131,12 @@ class OrderedList(UnorderedList):
             previous.tail = new_node
         self.length += 1
 
+    def insert(self, value, *args):
+        self.add(value)
+
+    def append(self, value):
+        self.add(value)
+
 
 class ListNode:
     def __init__(self, value):
