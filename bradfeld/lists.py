@@ -20,19 +20,22 @@ class UnorderedList:
         self.length += 1
 
     def remove(self, value):
+        if len(self) == 0:
+            raise IndexError("cannot remove from empty list")
         current = self.head
         previous = None
         while current is not None:
             if current.value == value:
-                if previous is None:
-                    self.head = current.tail
-                    self.length = 0
-                else:
-                    previous.tail = current.tail
-                    self.length -= 1
+                break
             tail = current.tail
             previous = current
             current = tail
+        if previous is None:
+            self.head = current.tail
+            self.length -= 1
+        else:
+            previous.tail = current.tail
+            self.length -= 1
 
     def search(self, value):
         current = self.head
@@ -85,20 +88,48 @@ class UnorderedList:
             pos = len(self) - 1
         elif pos >= len(self):
             raise IndexError("index out of range")
-        if len(self) == 1 or pos == 0:
-            result = self.head.value
-            self.head = self.head.tail
-            self.length -= 1
-            return result
-        index = 0
         current = self.head
-        while index < pos - 1:
+        previous = None
+        index = 0
+        while current is not None and index < pos:
+            previous = current
             current = current.tail
             index += 1
-        result = current.tail.value
-        current.tail = current.tail.tail
+        result = current.value
         self.length -= 1
+        if previous is None:
+            self.head = current.tail
+        else:
+            previous.tail = current.tail
         return result
+
+
+class OrderedList(UnorderedList):
+
+    def search(self, value):
+        current = self.head
+        while current is not None and current.value <= value:
+            if current.value == value:
+                return True
+            current = current.tail
+        return False
+
+    def add(self, value):
+        current = self.head
+        previous = None
+        new_node = ListNode(value)
+        while current is not None:
+            if value < current.value:
+                break
+            previous = current
+            current = current.tail
+        if previous is None:
+            new_node.tail = current
+            self.head = new_node
+        else:
+            new_node.tail = current
+            previous.tail = new_node
+        self.length += 1
 
 
 class ListNode:

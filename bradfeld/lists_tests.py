@@ -1,5 +1,5 @@
 import unittest
-from bradfeld.lists import UnorderedList
+from bradfeld.lists import UnorderedList, OrderedList
 
 
 class ListTest(unittest.TestCase):
@@ -36,6 +36,12 @@ class ListTest(unittest.TestCase):
         self.uo_list.remove(2)
         self.uo_list.remove(0)
         self.assertIsNone(self.uo_list.head)
+        # 0 -> 0 -> None
+        self.uo_list.add(0)
+        self.uo_list.add(0)
+        self.uo_list.remove(0)
+        self.assertEqual(len(self.uo_list), 1)
+
 
     def test_search(self):
         # 3 -> 2 -> 1 -> 0 -> None
@@ -94,6 +100,35 @@ class ListTest(unittest.TestCase):
         head = self.uo_list.head
         self.assertEqual(head.value, 2)
         self.assertEqual(head.tail.value, 0)
+
+
+class OrderedListTest(unittest.TestCase):
+    def setUp(self):
+        o_list = OrderedList()
+        o_list.add(11)
+        o_list.add(97)
+        o_list.add(0)
+        o_list.add(23)
+        o_list.add(47)
+        self.o_list = o_list
+
+    def test_search(self):
+        # 0 -> 11 -> 23 -> 47 -> 97 -> None
+        self.assertTrue(self.o_list.search(11))
+        self.assertTrue(self.o_list.search(97))
+        self.assertTrue(self.o_list.search(0))
+        self.assertFalse(self.o_list.search(1))
+        self.assertFalse(self.o_list.search(100))
+        self.assertFalse(self.o_list.search(-1))
+
+    def test_add(self):
+        # 0 -> 11 -> 23 -> 47 -> 97 -> None
+        values = []
+        current = self.o_list.head
+        for _ in range(len(self.o_list)):
+            values.append(current.value)
+            current = current.tail
+        self.assertEqual(values, [0, 11, 23, 47, 97])
 
 
 if __name__ == '__main__':
